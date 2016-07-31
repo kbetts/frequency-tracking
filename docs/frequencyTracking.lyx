@@ -1,0 +1,716 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 503
+\begin_document
+\begin_header
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage{fancyheadings}
+\pagestyle{fancy}
+\lhead{Kellen Betts}
+\chead{frequencyTracking}
+\rhead{160731}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 3cm
+\topmargin 3cm
+\rightmargin 3cm
+\bottommargin 3cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Frequency Tracking
+\end_layout
+
+\begin_layout Author
+Kellen Betts
+\end_layout
+
+\begin_layout Date
+Updated July 31, 2016
+\end_layout
+
+\begin_layout Abstract
+The objective of this project is to identify a frequency signature in highly
+ noisy data and track its movement in time and space.
+ Standard time-frequency methods are used including the Fast Fourier Transform
+ (FFT), temporal averaging, and a Gaussian filter.
+ The FFT is used to obtain the spectral content of the data.
+ A frequency signature is isolated in the data by averaging out the noise
+ across twenty time points.
+ The frequency signature is then used in the Gaussian filter to identify
+ its location at each time point and track its movement.
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+The setup for this problem involves my poor dog Fluffy swallowing a marble,
+ going to the vet to get an ultrasound, and saving Fluffy by locating the
+ marble in the ultrasound data.
+ The given data is three dimensional in space and evolves over 20 samples
+ in time.
+ Fluffy's movement and the intestinal environment have generated highly
+ noisy data and caused the marble to move in both space and time, so time-freque
+ncy filtering methods are the key finding its location.
+ We are asked to provide: (1) the marble's frequency signature, (2) the
+ marble's path, and (3) the marble's final location so the vet can use an
+ intense acoustic wave to break it up.
+\end_layout
+
+\begin_layout Section
+Theoretical Background
+\end_layout
+
+\begin_layout Standard
+To isolate the frequency signature and track its movement, standard time-frequen
+cy analysis techniques are used including the Fast Fourier Transform, temporal
+ averaging, and a Gaussian filter.
+ The Fourier series is used as the basis for the spectral content in the
+ data.
+ For a given function 
+\begin_inset Formula $f(x)$
+\end_inset
+
+ the Fourier Transform and its inverse are defined as,
+\begin_inset Formula 
+\begin{equation}
+F\left(k\right)=\frac{1}{\sqrt{2\pi}}\intop_{-\infty}^{\infty}e^{-ikx}f\left(x\right)dx
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+f(x)=\frac{1}{\sqrt{2\pi}}\intop_{-\infty}^{\infty}e^{ikx}F(k)dk
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $k$
+\end_inset
+
+ corresponds to the wavenumbers in the trigonometric identity.
+ Computationally the transform is implemented over a finite domain 
+\begin_inset Formula $x\,\epsilon\,\left[-L,L\right]$
+\end_inset
+
+ using the Fast Fourier Transform (FFT).
+ One of the important advantages of the FFT algorithm is the low operation
+ count of 
+\begin_inset Formula $O\left(N\,\log N\right)$
+\end_inset
+
+ using a 
+\begin_inset Formula $2^{n}$
+\end_inset
+
+ discritization.
+ Additionally, given its trigonometric construction, the transform assumes
+ a 
+\begin_inset Formula $2\pi$
+\end_inset
+
+-periodic domain.
+\end_layout
+
+\begin_layout Standard
+To isolate the marble's frequency signature, the random nature of the noise
+ is exploited by averaging across repeated samples where the mean for random
+ noise is approximately zero.
+ Once the frequency signature is isolated, the path of the marble is identified
+ by filtering each time step with a Gaussian filter defined as,
+\begin_inset Formula 
+\begin{equation}
+\mathcal{F}\left(k\right)=\exp\left(-\tau\left(k-k_{0}\right)\right)
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $\tau$
+\end_inset
+
+ is the bandwidth, 
+\begin_inset Formula $k$
+\end_inset
+
+ is the wavenumber, and 
+\begin_inset Formula $k_{0}$
+\end_inset
+
+ is the center frequency determined in the averaging process.
+ 
+\end_layout
+
+\begin_layout Section
+Algorithm Implementation and Development
+\end_layout
+
+\begin_layout Standard
+There are three essential steps in the solution to this problem: (1) initializat
+ion of data and variables, (2) identification of the marble's frequency
+ signature by averaging across the temporal domain, and (3) filtering each
+ time point to track the marble's path through time.
+ Most of the parameters are given in the project description.
+ Discritization is set at 
+\begin_inset Formula $n=64$
+\end_inset
+
+ with the spatial domain defined over 
+\begin_inset Formula $x,y,z\,\epsilon\,\left[-15,15\right]$
+\end_inset
+
+.
+ The spatial domain is discritized with 
+\begin_inset Formula $n+1$
+\end_inset
+
+ points then trimmed to 
+\begin_inset Formula $n$
+\end_inset
+
+ points since the FFT assumes periodic boundaries.
+ The frequency domain is discritized using, 
+\begin_inset Formula 
+\begin{equation}
+\mathtt{k=\frac{2\pi}{2L}\left[0:(\frac{n}{2}-1)-\frac{n}{2}:-1\right]}
+\end{equation}
+
+\end_inset
+
+which aligns with the shifted and 
+\begin_inset Formula $2\pi$
+\end_inset
+
+-scaled domain of the FFT algorithm.
+ The 
+\begin_inset Formula $\mathtt{x,y,z}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathtt{k}$
+\end_inset
+
+ vectors are then mapped to 
+\begin_inset Formula $n\times n\times n$
+\end_inset
+
+ matrices to match the three-dimensional dataset.
+\end_layout
+
+\begin_layout Standard
+The second critical step in the algorithm is isolating the marble's frequency
+ signature by averaging the spectral content in the data across the temporal
+ domain.
+ The original data contains 20 time points in a 
+\begin_inset Formula $20\times n^{3}$
+\end_inset
+
+ matrix with each row corresponding to a single sample (specific spatial/tempora
+l scale and units are not given).
+ Averaging is implemented by looping through each sample.
+ The incoming data is .
+ Inside the loop a given sample is reshaped to a 
+\begin_inset Formula $n\times n\times n$
+\end_inset
+
+ matrix then transformed into the frequency domain using the FFT.
+ The transformed sample is then added to a running sum.
+ After the loop runs through all 20 samples, the absolute value of the running
+ sum is averaged over for the 20 samples.
+ Since the mean of random noise is approximately zero, the frequency signature
+ is isolated by finding the maximum value in the data.
+ More specifically, the index of the maximum is used to find the corresponding
+ wavenumber 
+\begin_inset Formula $\left(k_{0}\right)$
+\end_inset
+
+ which is need for the Gaussian filter.
+ To confirm the frequency signature, the averaged data is plotted mindful
+ of the need to shift the data since it is in the FFT domain.
+\end_layout
+
+\begin_layout Standard
+Once the frequency signature is isolated, the final step in the algorithm
+ involves filtering each time step independently to track the marble's path
+ and find its final location.
+ Filtering is done in a loop that reshapes a given sample into a 
+\begin_inset Formula $n\times n\times n$
+\end_inset
+
+ matrix and passes it through the FFT.
+ Once in the frequency domain, the data gets multiplied by the Gaussian
+ filter effectively denoising the sample around the center frequency.
+ The marble's location is identified as before by finding the index of the
+ maximum value then using the index to map the specific 
+\begin_inset Formula $x,y,z$
+\end_inset
+
+ coordinates.
+ Since the marble is moving in time and space, the coordinates are logged
+ for each sample.
+ To confirm the marble's path, each filtered sample is plotted and overlaid
+ with the final plot of the path.
+ 
+\end_layout
+
+\begin_layout Section
+Computational Results
+\end_layout
+
+\begin_layout Standard
+By averaging the data across the 20 samples, the wavenumbers corresponding
+ to the marble's 
+\emph on
+frequency signature
+\emph default
+ are 
+\begin_inset Formula $\left(1.8850,\,-1.0472,\,0\right)$
+\end_inset
+
+ or approximately 
+\begin_inset Formula $\left(2,\,-1,\,0\right)$
+\end_inset
+
+.
+ This is confirmed in the plots of the averaged data (shifted and normalized)
+ as seen in Figure 1.
+ 
+\end_layout
+
+\begin_layout Standard
+For the Gaussian filter different values of the bandwidth 
+\begin_inset Formula $(\tau)$
+\end_inset
+
+ were tested, but the results were similar for 
+\begin_inset Formula $0.1<\tau<1$
+\end_inset
+
+.
+ The 
+\emph on
+marble's path
+\emph default
+ is a downward, counterclockwise spiral starting at approximately 
+\begin_inset Formula $\left(4.7,\,-4.7,\,9.9\right)$
+\end_inset
+
+ and ending at the
+\emph on
+ final location
+\emph default
+ of 
+\begin_inset Formula $\left(-5.6250,\,4.2188,\,-6.0938\right)$
+\end_inset
+
+.
+ A plot of the path overlaid with the surface plots for each time step can
+ be seen in Figure 2.
+ Most importantly, the vet should direct the intense acoustic wave at approximat
+ely 
+\begin_inset Formula $\left(-5.6,\,4.2,\,-6.1\right)$
+\end_inset
+
+ to blast the marble and save Fluffy!
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\begin_inset Separator parbreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\align center
+\begin_inset Graphics
+	filename plots/averaged.pdf
+	width 85col%
+
+\end_inset
+
+
+\series bold
+
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Box Frameless
+position "t"
+hor_pos "l"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "75col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Figure 1.
+
+\series default
+ Plot of the 3D frequency data denoised by averaging across 20 time steps.
+ The data is shifted and normalized, and the plot views are set to the X-Z
+ (left) and Y-Z (right) planes.
+ The green sphere located at approximately 
+\begin_inset Formula $\left(2,\,-1,\,0\right)$
+\end_inset
+
+ is the marble's frequency signature.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace 10pheight%
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\align center
+\begin_inset Graphics
+	filename plots/overlay.eps
+	width 75col%
+
+\end_inset
+
+
+\series bold
+
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Box Frameless
+position "t"
+hor_pos "l"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "75col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Figure 2.
+
+\series default
+ Plot of the marble's path through time.
+ Each green sphere corresponds to a single time step.
+ The path is a downward, counterclockwise spiral starting at 
+\begin_inset Formula $\sim\left(4.7,\,-4.7,\,9.9\right)$
+\end_inset
+
+ and ending at 
+\begin_inset Formula $\sim\left(-5.6,\,4.2,\,-6.1\right)$
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Summary and Conclusions
+\end_layout
+
+\begin_layout Standard
+Ultimately, this project demonstrates that standard time-frequency methods
+ such as the FFT, temporal averaging, and a Gaussian filter can be used
+ to isolate a frequency signature in highly noisy data and track its movement
+ time and space.
+ The FFT algorithm is a critical computational element used to solve this
+ problem, and having it provided as a built-in MATLAB function greatly simplifie
+s the programming process.
+ One aspect of this algorithm that proved challenging was isolating the
+ index of the maximum value in the data.
+ The incoming data is in three dimensions, but the 
+\begin_inset Formula $\mathtt{max}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathtt{find}$
+\end_inset
+
+ MATLAB functions provide a linear index (data is stacked to 
+\begin_inset Formula $1\times n^{3}$
+\end_inset
+
+).
+ The documentation for the 
+\begin_inset Formula $\mathtt{find}$
+\end_inset
+
+ function suggests using the 
+\begin_inset Formula $\mathtt{ind2sub}$
+\end_inset
+
+ function to convert the linear index to the corresponding matrix subscripts
+ but the results I initially got from this were incorrect (did not match
+ the plot).
+ Fortunately, one of my classmates posted the suggestion on the discussion
+ board that 
+\begin_inset Formula $\mathtt{ind2sub}$
+\end_inset
+
+ does not output 
+\begin_inset Formula $x,y$
+\end_inset
+
+ indices in the order that correspond to the original data so they needed
+ to be swapped.
+ This insight was very helpful and I am indebted to their contribution on
+ the discussion board.
+\end_layout
+
+\begin_layout Section*
+Appendix A (Functions)
+\end_layout
+
+\begin_layout Description
+abs Takes the absolute value.
+\end_layout
+
+\begin_layout Description
+fftn The all important FFT function, which performs a discritized Fourier
+ Transforms.
+ This version of the function transforms 
+\begin_inset Formula $n$
+\end_inset
+
+-dimensional data.
+ The 
+\begin_inset Formula $\mathtt{fft}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathtt{fft}2$
+\end_inset
+
+ versions transform 1- and 2-dimensional data respectively.
+\end_layout
+
+\begin_layout Description
+fftshift The output of the 
+\begin_inset Formula $\mathtt{fft}$
+\end_inset
+
+ algorithm is shifted (butterfly algorithm), so data in the frequency domain
+ is shifted back using this function before plotting.
+\end_layout
+
+\begin_layout Description
+ind2sub This function proved highly useful and problematic.
+ It is used to convert the linear index of the maximum value in the data
+ (pulled from the 
+\begin_inset Formula $\mathtt{max}$
+\end_inset
+
+ function) into the corresponding 3D matrix subscripts.
+ As described in
+\emph on
+ 
+\emph default
+Summary and Conclusions, the output from this function did not match the
+ 
+\begin_inset Formula $x,y$
+\end_inset
+
+ spatial relation in the original data and so the coordinates need to be
+ swapped.
+ This was suggested by a classmate, and confirmed by plotting the data and
+ by digging through the function's documentation.
+\end_layout
+
+\begin_layout Description
+isosurface Used to plot 3D surfaces to visualize the marble's frequency
+ signature in the averaged data and its location at each time step in the
+ filtered data.
+\end_layout
+
+\begin_layout Description
+linspace Used to build a linear vector with 
+\begin_inset Formula $n+1$
+\end_inset
+
+ points for the spatial domain.
+ The vector is then trimmed to 
+\begin_inset Formula $n$
+\end_inset
+
+ points due to the periodic boundaries.
+\end_layout
+
+\begin_layout Description
+max Used to find the maximum value and corresponding linear index in the
+ data.
+ The linear index is then converted to the corresponding matrix subscripts
+ using 
+\begin_inset Formula $\mathtt{ind2sub}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Description
+meshgrid Used to build 3D grids from the linear 
+\begin_inset Formula $x,y,z$
+\end_inset
+
+ and 
+\begin_inset Formula $k$
+\end_inset
+
+ vectors.
+\end_layout
+
+\begin_layout Description
+plot3 Used to plot the 3D path of the marble using the coordinates obtained
+ at each time step.
+\end_layout
+
+\begin_layout Description
+reshape Used to covert vectors (i.e.
+ 
+\begin_inset Formula $1\times n^{3}$
+\end_inset
+
+) to matrices (i.e.
+ 
+\begin_inset Formula $n\times n\times n$
+\end_inset
+
+) and back.
+\end_layout
+
+\begin_layout Description
+size Used to get the number of rows (time steps) in the original data.
+ This generalizes the script allowing a larger dataset to be implemented
+ more easily.
+\end_layout
+
+\begin_layout Description
+zeros Used to build vectors and matrices filled with zeros.
+\end_layout
+
+\begin_layout Section*
+Appendix B (Code)
+\end_layout
+
+\begin_layout Standard
+See project root for files.
+\end_layout
+
+\end_body
+\end_document
