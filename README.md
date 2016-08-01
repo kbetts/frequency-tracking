@@ -1,7 +1,7 @@
 # frequencyTracking
 Identifies a frequency signature in highly noisy data and tracks its movement in time and space.
 
-See the documentations (docs/) for a more detailed description.
+See the documentation (./docs/) for more details.
 
 Test data set can be downloaded here:
 
